@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wardcraft Homes - Job Tracker</title>
+<style>
+  :root{
+    --green:#1D9E75; --green-bg:#E1F5EE; --green-dk:#085041;
+    --blue:#378ADD; --blue-bg:#E6F1FB; --blue-dk:#0C447C;
+    --amber:#EF9F27; --amber-bg:#FAEEDA; --amber-dk:#633806;
+    --red:#E24B4A; --red-bg:#FCEBEB; --red-dk:#791F1F;
+    --ink:#1f2421; --muted:#6b7370; --line:#e2e5e2; --bg:#f6f7f6; --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+  header{background:#1d3a2f;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  header h1{font-size:17px;font-weight:600}
+  header .sub{font-size:12px;opacity:.75}
+  .proto{margin-left:auto;background:#ffffff22;font-size:11px;padding:3px 10px;border-radius:99px}
+  nav{background:#fff;border-bottom:1px solid var(--line);padding:0 14px;display:flex;gap:2px;overflow-x:auto}
+  nav button{border:0;background:none;padding:12px 14px;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap}
+  nav button.on{color:var(--ink);border-bottom-color:#1d3a2f}
+  main{max-width:1100px;margin:0 auto;padding:18px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .mcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .mcard .lbl{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .mcard .val{font-size:24px;font-weight:600}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+  .panel h2{font-size:15px;font-weight:600;margin-bottom:10px}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+  .p-red{background:var(--red-bg);color:var(--red-dk)} .p-amber{background:var(--amber-bg);color:var(--amber-dk)}
+  .p-green{background:var(--green-bg);color:var(--green-dk)} .p-blue{background:var(--blue-bg);color:var(--blue-dk)}
+  .p-gray{background:#eef0ee;color:#555}
+  .jrow{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--line);cursor:pointer}
+  .jrow:hover{background:#fafbfa}
+  .jname{width:200px;flex-shrink:0}
+  .jname .nm{font-weight:600;font-size:14px}
+  .jname .hn{font-size:12px;color:var(--muted)}
+  .strip{flex:1;display:grid;gap:3px}
+  .cell{height:16px;border-radius:3px;background:#e7eae7}
+  .cell.done{background:var(--green)} .cell.active{background:var(--blue)} .cell.late{background:var(--red)} .cell.warn{background:var(--amber)}
+  .jmeta{width:115px;flex-shrink:0;text-align:right;font-size:12px}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+  .overlay{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto;z-index:10}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:12px;max-width:660px;width:100%;padding:20px 22px;margin-bottom:40px}
+  .modal h2{font-size:18px;font-weight:600}
+  .modal .close{float:right;border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted)}
+  .phase{margin-top:14px}
+  .phase h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+  .step{display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;cursor:pointer}
+  .step:hover{background:#f4f6f4}
+  .step .box{width:19px;height:19px;border:2px solid #c6ccc8;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+  .step.done .box{background:var(--green);border-color:var(--green)}
+  .step .sl{flex:1}
+  .step.done .sl{color:var(--muted);text-decoration:line-through}
+  .doc{font-size:11px;color:var(--blue-dk);background:var(--blue-bg);padding:1px 7px;border-radius:99px}
+  .anchor-note{font-size:12.5px;background:var(--amber-bg);color:var(--amber-dk);padding:8px 12px;border-radius:8px;margin-top:10px}
+  .anchor-note.firm{background:var(--green-bg);color:var(--green-dk)}
+  .myday-item{display:flex;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid var(--line);cursor:pointer}
+  .nudge{font-size:13px;color:var(--muted)}
+  .risk{font-size:13px;color:var(--red-dk);background:var(--red-bg);border-radius:8px;padding:8px 12px;margin-bottom:6px;cursor:pointer}
+  .act{font-size:13px;padding:7px 4px;border-top:1px solid var(--line)}
+  .act .who{font-weight:600}
+  .act .when{color:var(--muted);font-size:12px}
+  .editrow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .editrow label{font-size:13px;color:var(--muted)}
+  .editrow input[type=date],.editrow input[type=text]{font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;flex:1;min-width:130px}
+  .editrow button{font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer}
+  .editrow button:hover{background:#f0f2f0}
+  @media(max-width:640px){.jname{width:125px}.jmeta{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Wardcraft Homes - Job Tracker</h1>
+    <div class="sub">Guthrie territory &middot; live pilot</div>
+  </div>
+  <span class="proto" id="sync">CONNECTING&hellip;</span>
+</header>
+<nav>
+  <button class="on" data-v="dash" onclick="show('dash')">Dashboard</button>
+  <button data-v="board" onclick="show('board')">Job board</button>
+  <button data-v="myday" onclick="show('myday')">My day</button>
+</nav>
+<main>
+  <div id="v-dash"><p class="nudge" style="padding:20px">Loading&hellip;</p></div>
+  <div id="v-board" style="display:none"></div>
+  <div id="v-myday" style="display:none"></div>
+</main>
+<div class="overlay" id="ov" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
+
+<script>
+var API='https://stbwncgbnxpntthbnfun.supabase.co/functions/v1/tracker/wch-g7trk-4mz8qv2n';
+var PHASES=["Contract","Plans","Approvals","Permits","Site","Production","Delivery","Closeout"];
+var DAY=86400000;
+var S={jobs:[],steps:[],activity:[]};
+var openHouse=null;
+var actor=localStorage.getItem('wch_actor')||'';
+if(!actor){actor=(prompt('Your name (shows in the change log):')||'Unknown').trim()||'Unknown';localStorage.setItem('wch_actor',actor);}
+
+function h(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function today(){var d=new Date();d.setHours(0,0,0,0);return d;}
+function fmt(d){return d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'-';}
+function pd(s){if(!s)return null;var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+
+function stepsFor(job){
+  var contract=pd(job.contract_date), slot=pd(job.slot_date), T=today();
+  return S.steps.filter(function(s){return s.job_id===job.id;}).map(function(s){
+    var due=null;
+    if(slot&&s.back_days!==null)due=new Date(slot.getTime()+s.back_days*DAY);
+    else if(contract&&s.fwd_days!==null)due=new Date(contract.getTime()+s.fwd_days*DAY);
+    var state='pending';
+    if(s.done)state='done';
+    else if(due&&due<T)state='late';
+    else if(due&&(due-T)/DAY<=7)state='warn';
+    else if(due)state='upcoming';
+    return {row:s,due:due,state:state,daysLate:(due&&!s.done)?Math.floor((T-due)/DAY):0};
+  });
+}
+function calc(j){
+  var steps=stepsFor(j);
+  var open=steps.filter(function(s){return !s.row.done;});
+  var late=open.filter(function(s){return s.state==='late';});
+  var next=open.length?open[0]:null;
+  var ph={};
+  PHASES.forEach(function(p){
+    var ps=steps.filter(function(s){return s.row.phase===p;});
+    if(!ps.length){ph[p]='na';return;}
+    var allDone=ps.every(function(s){return s.row.done;});
+    if(allDone){ph[p]='done';return;}
+    if(ps.some(function(s){return !s.row.done&&s.state==='late';})){ph[p]='late';return;}
+    var touched=ps.some(function(s){return s.row.done;})||(next&&ps.indexOf(next)>=0);
+    if(touched){ph[p]=ps.some(function(s){return s.state==='warn';})?'warn':'active';return;}
+    ph[p]='pending';
+  });
+  return {steps:steps,open:open,late:late,next:next,ph:ph};
+}
+function pill(s){
+  if(s.state==='late')return '<span class="pill p-red">'+s.daysLate+'d overdue</span>';
+  if(s.state==='warn')return '<span class="pill p-amber">due '+fmt(s.due)+'</span>';
+  if(s.state==='upcoming')return '<span class="pill p-gray">due '+fmt(s.due)+'</span>';
+  return '';
+}
+function ago(ts){
+  var m=Math.floor((Date.now()-new Date(ts).getTime())/60000);
+  if(m<1)return 'just now'; if(m<60)return m+'m ago';
+  var hr=Math.floor(m/60); if(hr<24)return hr+'h ago';
+  return Math.floor(hr/24)+'d ago';
+}
+
+function renderDash(){
+  var lateItems=0,atRisk=[],noSlot=0,delivering=0,T=today();
+  S.jobs.forEach(function(j){
+    var c=calc(j);
+    lateItems+=c.late.length;
+    if(!j.slot_date&&c.open.length)noSlot++;
+    if(j.slot_date){var d=(pd(j.slot_date)-T)/DAY;if(d>=0&&d<=30)delivering++;}
+    if(c.late.length)atRisk.push({j:j,c:c});
+  });
+  atRisk.sort(function(a,b){
+    var ma=Math.max.apply(null,a.c.late.map(function(s){return s.daysLate;}));
+    var mb=Math.max.apply(null,b.c.late.map(function(s){return s.daysLate;}));
+    return mb-ma;
+  });
+  var html='<div class="cards">'
+   +'<div class="mcard"><div class="lbl">Active jobs</div><div class="val">'+S.jobs.length+'</div></div>'
+   +'<div class="mcard"><div class="lbl">Overdue items</div><div class="val" style="color:var(--red-dk)">'+lateItems+'</div></div>'
+   +'<div class="mcard"><div class="lbl">No firm delivery date</div><div class="val" style="color:var(--amber-dk)">'+noSlot+'</div></div>'
+   +'<div class="mcard"><div class="lbl">Delivering in 30 days</div><div class="val" style="color:var(--blue-dk)">'+delivering+'</div></div>'
+   +'</div>';
+  html+='<div class="panel"><h2>At-risk jobs</h2>';
+  if(atRisk.length){
+    atRisk.slice(0,8).forEach(function(r){
+      var worst=r.c.late.slice().sort(function(a,b){return b.daysLate-a.daysLate;})[0];
+      html+='<div class="risk" onclick="openJob('+r.j.house_no+')"><strong>'+h(r.j.name)+' #'+r.j.house_no+'</strong> - '+h(worst.row.label.toLowerCase())+' is '+worst.daysLate+' days overdue'+(r.c.late.length>1?' (+'+(r.c.late.length-1)+' more)':'')+'</div>';
+    });
+  } else html+='<p class="nudge">Nothing overdue.</p>';
+  html+='</div>';
+  html+='<div class="panel"><h2>Recent activity</h2>';
+  if(S.activity.length){
+    S.activity.slice(0,12).forEach(function(a){
+      var j=S.jobs.find(function(x){return x.id===a.job_id;});
+      html+='<div class="act"><span class="who">'+h(a.actor)+'</span> '+(a.action==='completed'?'checked off':a.action==='reopened'?'reopened':a.action==='slot_date'?'updated delivery date:':'noted:')+' '+h(a.detail)+(j?' &middot; '+h(j.name)+' #'+j.house_no:'')+' <span class="when">'+ago(a.created_at)+'</span></div>';
+    });
+  } else html+='<p class="nudge">No changes logged yet. Be the first.</p>';
+  html+='</div>';
+  document.getElementById('v-dash').innerHTML=html;
+}
+
+function renderBoard(){
+  var rows='';
+  S.jobs.forEach(function(j){
+    var c=calc(j);
+    var cells='';
+    PHASES.forEach(function(p){
+      var st=c.ph[p];
+      var cls=st==='done'?'done':st==='late'?'late':st==='warn'?'warn':st==='active'?'active':'';
+      cells+='<div class="cell '+cls+'"'+(st==='na'?' style="opacity:.25"':'')+' title="'+p+'"></div>';
+    });
+    var meta=c.late.length?'<span class="pill p-red">'+c.late.length+' overdue</span>':(c.next?'<span class="pill p-gray">next: '+fmt(c.next.due)+'</span>':'<span class="pill p-green">complete</span>');
+    rows+='<div class="jrow" onclick="openJob('+j.house_no+')">'
+     +'<div class="jname"><div class="nm">'+h(j.name)+'</div><div class="hn">#'+j.house_no+' &middot; '+(j.pathway==='inventory'?'Inventory':'Custom')+(j.slot_date?' &middot; delivers '+fmt(pd(j.slot_date)):'')+'</div></div>'
+     +'<div class="strip" style="grid-template-columns:repeat('+PHASES.length+',1fr)">'+cells+'</div>'
+     +'<div class="jmeta">'+meta+'</div></div>';
+  });
+  document.getElementById('v-board').innerHTML='<div class="panel"><h2>All jobs - contract to closeout</h2>'+rows
+   +'<div class="legend">'
+   +'<span><span class="sw" style="background:var(--green)"></span>done</span>'
+   +'<span><span class="sw" style="background:var(--blue)"></span>in progress</span>'
+   +'<span><span class="sw" style="background:var(--amber)"></span>due this week</span>'
+   +'<span><span class="sw" style="background:var(--red)"></span>overdue</span>'
+   +'<span><span class="sw" style="background:#e7eae7"></span>not started</span>'
+   +'</div></div>';
+}
+
+function renderMyDay(){
+  var items=[];
+  S.jobs.forEach(function(j){
+    var c=calc(j);
+    c.open.slice(0,2).forEach(function(s){if(s.due)items.push({j:j,s:s});});
+  });
+  items.sort(function(a,b){return a.s.due-b.s.due;});
+  var html='<div class="panel"><h2>Your next items, most urgent first</h2><p class="nudge" style="margin-bottom:6px">Work the list top to bottom. Tap an item to open the job and check it off.</p>';
+  items.slice(0,15).forEach(function(it){
+    html+='<div class="myday-item" onclick="openJob('+it.j.house_no+')">'
+     +'<div style="flex:1"><strong>'+h(it.s.row.label)+'</strong><div class="nudge">'+h(it.j.name)+' #'+it.j.house_no+'</div></div>'
+     +(it.s.row.needs_doc?'<span class="doc">needs doc</span>':'')
+     +pill(it.s)+'</div>';
+  });
+  html+='</div>';
+  document.getElementById('v-myday').innerHTML=html;
+}
+
+function openJob(houseNo){
+  openHouse=houseNo;
+  var j=S.jobs.find(function(x){return x.house_no===houseNo;});
+  if(!j)return;
+  var c=calc(j);
+  var byPhase={};
+  c.steps.forEach(function(s){(byPhase[s.row.phase]=byPhase[s.row.phase]||[]).push(s);});
+  var anchor=j.slot_date
+   ?'<div class="anchor-note firm">Delivery date firm: <strong>'+fmt(pd(j.slot_date))+'</strong>. Deadlines count backward from delivery.</div>'
+   :'<div class="anchor-note">No firm delivery date yet. Deadlines run forward from contract ('+fmt(pd(j.contract_date))+') and re-anchor automatically when a delivery date is set below.</div>';
+  var html='<button class="close" onclick="closeModal()">&times;</button>'
+   +'<h2>'+h(j.name)+' <span style="color:var(--muted);font-weight:400">#'+j.house_no+'</span></h2>'
+   +'<div style="margin-top:4px"><span class="pill '+(j.pathway==='inventory'?'p-blue':'p-green')+'">'+(j.pathway==='inventory'?'Inventory home':'Custom home')+'</span></div>'
+   +anchor
+   +'<div class="editrow"><label>Delivery date:</label><input type="date" id="slotin" value="'+(j.slot_date||'')+'"><button onclick="saveSlot('+j.id+')">Save</button></div>'
+   +'<div class="editrow"><label>Note:</label><input type="text" id="notein" value="'+h(j.note)+'" maxlength="300"><button onclick="saveNote('+j.id+')">Save</button></div>';
+  PHASES.forEach(function(p){
+    if(!byPhase[p])return;
+    html+='<div class="phase"><h3>'+p+'</h3>';
+    byPhase[p].forEach(function(s){
+      html+='<div class="step '+(s.row.done?'done':'')+'" onclick="toggleStep('+j.id+',\''+s.row.step_key+'\')">'
+       +'<div class="box">'+(s.row.done?'&#10003;':'')+'</div>'
+       +'<div class="sl">'+h(s.row.label)+'</div>'
+       +(s.row.needs_doc?'<span class="doc">doc</span>':'')
+       +(s.row.done?'':pill(s))+'</div>';
+    });
+    html+='</div>';
+  });
+  html+='<p class="nudge" style="margin-top:14px">Tap a step to mark it done. Every change is logged with your name and time.</p>';
+  document.getElementById('modal').innerHTML=html;
+  document.getElementById('ov').classList.add('show');
+}
+function closeModal(){document.getElementById('ov').classList.remove('show');openHouse=null;}
+
+function post(body){
+  body.actor=actor;
+  return fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})
+   .then(function(r){return r.json();})
+   .then(function(d){if(!d.ok)alert('Save failed: '+(d.error||'unknown'));return d;})
+   .catch(function(){alert('Network problem - change may not be saved.');});
+}
+function toggleStep(jobId,key){
+  var s=S.steps.find(function(x){return x.job_id===jobId&&x.step_key===key;});
+  if(!s)return;
+  s.done=!s.done;
+  refreshAll();if(openHouse)openJob(openHouse);
+  post({op:'toggle',job_id:jobId,step_key:key,done:s.done,label:s.label}).then(load);
+}
+function saveSlot(jobId){
+  var v=document.getElementById('slotin').value||null;
+  var j=S.jobs.find(function(x){return x.id===jobId;});
+  j.slot_date=v;
+  refreshAll();if(openHouse)openJob(openHouse);
+  post({op:'set_slot',job_id:jobId,slot_date:v}).then(load);
+}
+function saveNote(jobId){
+  var v=document.getElementById('notein').value;
+  var j=S.jobs.find(function(x){return x.id===jobId;});
+  j.note=v;
+  post({op:'set_note',job_id:jobId,note:v}).then(load);
+}
+
+function show(v){
+  ['dash','board','myday'].forEach(function(x){
+    document.getElementById('v-'+x).style.display=(x===v)?'':'none';
+    document.querySelector('nav button[data-v="'+x+'"]').classList.toggle('on',x===v);
+  });
+}
+function refreshAll(){renderDash();renderBoard();renderMyDay();}
+function load(){
+  return fetch(API+'/state').then(function(r){return r.json();}).then(function(d){
+    if(d.jobs){S=d;refreshAll();document.getElementById('sync').innerHTML='LIVE &middot; synced';}
+  }).catch(function(){document.getElementById('sync').textContent='OFFLINE - check internet';});
+}
+load();
+setInterval(load,60000);
+</script>
+</body>
+</html>
